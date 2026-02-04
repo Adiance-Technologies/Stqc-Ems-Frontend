@@ -128,7 +128,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 </Button>
               </Link>
 
-              <Link to="/userManagement" style={{ textDecoration: 'none' }}>
+              {/* <Link to="/userManagement" style={{ textDecoration: 'none' }}>
                 <Button
                   width="100%"
                   alignItems="center"
@@ -143,7 +143,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                     {!isCollapsed && <span>VMS User Management</span>}
                   </HStack>
                 </Button>
-              </Link>
+              </Link> */}
 
               <Link to="/userManagementEms" style={{ textDecoration: 'none' }}>
                 <Button
@@ -179,7 +179,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 </Button>
               </Link>
 
-              <Link to="/basefirmware" style={{ textDecoration: 'none' }}>
+              {/* <Link to="/basefirmware" style={{ textDecoration: 'none' }}>
                 <Button
                   width="100%"
                   alignItems="center"
@@ -194,7 +194,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                     {!isCollapsed && <span>BFW Releases</span>}
                   </HStack>
                 </Button>
-              </Link>
+              </Link> */}
             </>
             }
 

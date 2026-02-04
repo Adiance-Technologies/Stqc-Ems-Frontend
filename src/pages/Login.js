@@ -34,7 +34,7 @@ const LoginPage = () => {
       if (role === 'admin') {
         navigate("/dashboard");
       } else {
-        navigate("/requirement");
+        navigate("/dashboard");
       }
     } else {
       // Handle login failure
