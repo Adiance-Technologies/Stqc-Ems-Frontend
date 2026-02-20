@@ -382,9 +382,9 @@ const CameraList = () => {
                                 .map((camera, index) => (
                                     <Tr key={index}>
                                         <Td>{index + 1 + (currentPage - 1) * resultPerPage}</Td>
-                                        <Td><Link to={`/cameraAnalysis/${camera.deviceId}`}>
+                                        <Td>
                                             {camera.deviceId}
-                                        </Link></Td>
+                                        </Td>
                                         {/* <Td>{camera.productType}</Td> */}
                                         <Td>{camera.mqttUrl}</Td>
 
@@ -683,14 +683,7 @@ const CameraList = () => {
                                         value={cameraType}
                                         onChange={(e) => setCameraType(e.target.value)}
                                     >
-                                        <option value="A-Series">A-Series</option>
-                                        <option value="S-Series">S-Series</option>
-                                        {/* <option value="vod">VOD</option> */}
-                                        <option value="Wifi-S-Series">WiFi S-Series</option>
                                         <option value="Wifi-Augentix">WiFi-Augentix</option>
-                                        <option value="4g-Augentix">4g-Augentix</option>
-                                        <option value="Poe-Augentix">Poe-Augentix</option>
-                                        <option value="NVR">NVR</option>
                                     </Select>
                                 </FormControl>
                                 <FormControl width="350px" mt={5} display={'flex'} justifyContent={"space-between"}>

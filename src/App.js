@@ -9,13 +9,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Deviceinfo from './pages/Deviceinfo';
 import CameraList from './pages/cameraList';
-import CameraAnalysis from './pages/CameraAnalysis';
 import UserManagement from './pages/userManagement';
 import UserManagementEms from './pages/userManagementEms';
 import UserCameraList from './pages/UserCameraList';
 import OtaPage from './pages/otaPage';
-import GptHistory from './pages/gptHistory';
-import MasterUid from './pages/masterUid';
 import BaseFirmware from './pages/BaseFirmware';
 
 function MainApp() {
@@ -60,16 +57,12 @@ function MainApp() {
                   <Route path="/forgotpassword" element={<ForgotPassword />} />
                   <Route path="/resetpassword/:token" element={<ResetPassword />} />
                   <Route path="/deviceinfo" element={<Deviceinfo />} />
-                  <Route path="/cameraAnalysis/:deviceId" element={<CameraAnalysis />} />
                   <Route path="/ota" element={<OtaPage />} />
                   <Route path="/cameraList" element={<CameraList />} />
                   <Route path="/usercameralist" element={<UserCameraList />} />
-                  <Route path="/gptHistory" element={<GptHistory />} />
                   <Route path="/userManagement" element={<UserManagement />} />
                   <Route path="/userManagementEms" element={<UserManagementEms />} />
                   <Route path="/basefirmware" element={<BaseFirmware />} />
-                  {/* <Route path="/batch" element={<BatchUpload />} /> */}
-                  <Route path="/batch" element={<MasterUid />} />
                 </Routes>
               </Box>
             </Flex>
