@@ -27,7 +27,9 @@ const Header = ({ isCollapsed, toggleCollapse }) => {
     await logout();
     navigate('/login');
   };
-  const headerBgColor = useColorModeValue('rgba(255,255,255,0.8)', '#1A202C');
+  // Always light to match the MPS palette (was color-mode dependent, which
+  // rendered dark #1A202C when a stale dark mode was persisted in localStorage).
+  const headerBgColor = 'rgba(255,255,255,0.85)';
 
   return (
     <Stack
@@ -44,8 +46,9 @@ const Header = ({ isCollapsed, toggleCollapse }) => {
         width: { lg: isCollapsed ? 'calc(100% - 80px)' : 'calc(100% - 280px)' },
         // width: '100%',
         zIndex: 10,
-        backdropFilter: 'blur(6px)',
+        backdropFilter: 'blur(12px)',
         backgroundColor: headerBgColor,
+        borderBottom: '1px solid #D6DBE5',
         left: { base: '0', lg: isCollapsed ? '80px' : '280px' },
         transition: 'left 0.2s',
         top: '0px',
@@ -59,10 +62,10 @@ const Header = ({ isCollapsed, toggleCollapse }) => {
         aria-label="Collapse sidebar"
         sx={{
           bg: 'transparent',
-          color: '#9DA4AE',
+          color: '#3C4759',
           _hover: {
-            bg: '#2C5282',
-            color: 'white',
+            bg: '#EEF1F7',
+            color: '#4F46E5',
           },
         }}
       />

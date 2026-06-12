@@ -29,6 +29,10 @@ import reportWebVitals from './reportWebVitals';
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
 import theme from './theme';
 
+// App is light-only now (matches MPS). Clear any stale persisted "dark" so
+// returning users don't get a dark header/chrome from a previous session.
+try { window.localStorage.setItem('chakra-ui-color-mode', 'light'); } catch (e) {}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ChakraProvider theme={theme}>

@@ -8,6 +8,21 @@ import SessionTimeout from './SessionTimeout';
 import { getDashboardData } from '../actions/adminActions';
 import { fetchLatestMessage } from '../actions/cameraActions';
 import { PiPlugsConnectedFill } from "react-icons/pi";
+import ProvisioningOverview from '../components/ProvisioningOverview';
+
+// Admins additionally see the manufacturing/provisioning overview (folded in
+// from MPS). The provisioning APIs are admin-only, so gate the section to
+// avoid 403s for non-admin viewers.
+const isAdmin = () => {
+  try {
+    const raw = localStorage.getItem('userRole');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.includes('admin') : String(parsed).includes('admin');
+  } catch {
+    return String(localStorage.getItem('userRole') || '').includes('admin');
+  }
+};
 
 const Dashboard = () => {
 
@@ -150,6 +165,25 @@ const Dashboard = () => {
           IconComponent={PiPlugsConnectedFill}
         />
       </Grid>
+
+      {isAdmin() && (
+        <Box padding='1% 2% 2%' mt={4}>
+          <Text
+            sx={{
+              color: "var(--primary-txt, #141E35)",
+              fontFamily: "Inter",
+              fontSize: "2xl",
+              fontWeight: "700",
+              textTransform: "capitalize",
+              textAlign: "left",
+            }}
+            mb={4}
+          >
+            Manufacturing / Provisioning
+          </Text>
+          <ProvisioningOverview />
+        </Box>
+      )}
 
     </Box>
   );

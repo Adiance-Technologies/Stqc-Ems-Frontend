@@ -22,7 +22,8 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
         display={{ base: 'none', lg: 'flex' }}
         flexDirection="column"
         width={isCollapsed ? "80px" : "280px"}
-        background='#1C2536'
+        background='#FFFFFF'
+        borderRight='1px solid #D6DBE5'
         height="100vh"
         boxShadow="md"
         transition="width 0.2s"
@@ -65,13 +66,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/dashboard') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/dashboard') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/dashboard') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/dashboard') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <RiDashboardFill color={isActive('/dashboard') ? '#9678E1' : '#9DA4AE'} />
+                    <RiDashboardFill color={isActive('/dashboard') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>Dashboard</span>}
                   </HStack>
                 </Button>
@@ -82,13 +83,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/cameraList') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/cameraList') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/cameraList') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/cameraList') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/cameraList') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/cameraList') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>Camera List</span>}
                   </HStack>
                 </Button>
@@ -99,13 +100,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/deviceinfo') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/deviceinfo') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/deviceinfo') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/deviceinfo') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/deviceinfo') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/deviceinfo') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>Device Info</span>}
                   </HStack>
                 </Button>
@@ -116,13 +117,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/usercameralist') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/usercameralist') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/usercameralist') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/usercameralist') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/usercameralist') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/usercameralist') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>Camera List (User)</span>}
                   </HStack>
                 </Button>
@@ -133,13 +134,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/userManagement') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/userManagement') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/userManagement') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/userManagement') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/userManagement') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/userManagement') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>VMS User Management</span>}
                   </HStack>
                 </Button>
@@ -150,13 +151,13 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/userManagementEms') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/userManagementEms') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/userManagementEms') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/userManagementEms') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/userManagementEms') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/userManagementEms') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>EMS User Management</span>}
                   </HStack>
                 </Button>
@@ -167,34 +168,82 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/ota') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/ota') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/ota') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/ota') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/ota') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/ota') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>OTA</span>}
                   </HStack>
                 </Button>
               </Link>
 
-              {/* Provisioning + Certificates entries moved to MPS dashboard:
-                  https://mps.devices.arcisai.io/dash/{provisioning,certificates} */}
+              {/* Provisioning / Devices / Certificates — folded back in from MPS */}
+              <Link to="/provisioning" style={{ textDecoration: 'none' }}>
+                <Button
+                  width="100%"
+                  alignItems="center"
+                  justifyContent="left"
+                  bg={isActive('/provisioning') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/provisioning') ? '#4338CA' : '#3C4759'}
+                  fontSize="sm"
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
+                >
+                  <HStack spacing={isCollapsed ? 0 : 4}>
+                    <BsRecordCircle color={isActive('/provisioning') ? '#4F46E5' : '#6B7280'} />
+                    {!isCollapsed && <span>Provisioning</span>}
+                  </HStack>
+                </Button>
+              </Link>
 
+              <Link to="/devices" style={{ textDecoration: 'none' }}>
+                <Button
+                  width="100%"
+                  alignItems="center"
+                  justifyContent="left"
+                  bg={isActive('/devices') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/devices') ? '#4338CA' : '#3C4759'}
+                  fontSize="sm"
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
+                >
+                  <HStack spacing={isCollapsed ? 0 : 4}>
+                    <BsRecordCircle color={isActive('/devices') ? '#4F46E5' : '#6B7280'} />
+                    {!isCollapsed && <span>Devices</span>}
+                  </HStack>
+                </Button>
+              </Link>
+
+              <Link to="/certificates" style={{ textDecoration: 'none' }}>
+                <Button
+                  width="100%"
+                  alignItems="center"
+                  justifyContent="left"
+                  bg={isActive('/certificates') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/certificates') ? '#4338CA' : '#3C4759'}
+                  fontSize="sm"
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
+                >
+                  <HStack spacing={isCollapsed ? 0 : 4}>
+                    <BsRecordCircle color={isActive('/certificates') ? '#4F46E5' : '#6B7280'} />
+                    {!isCollapsed && <span>Certificates</span>}
+                  </HStack>
+                </Button>
+              </Link>
 
               {/* <Link to="/basefirmware" style={{ textDecoration: 'none' }}>
                 <Button
                   width="100%"
                   alignItems="center"
                   justifyContent="left"
-                  bg={isActive('/basefirmware') ? 'rgba(255,255,255,0.1)' : 'transparent'}
-                  color={isActive('/basefirmware') ? 'white' : '#9DA4AE'}
+                  bg={isActive('/basefirmware') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/basefirmware') ? '#4338CA' : '#3C4759'}
                   fontSize="sm"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
-                    <BsRecordCircle color={isActive('/basefirmware') ? '#9678E1' : '#9DA4AE'} />
+                    <BsRecordCircle color={isActive('/basefirmware') ? '#4F46E5' : '#6B7280'} />
                     {!isCollapsed && <span>BFW Releases</span>}
                   </HStack>
                 </Button>
