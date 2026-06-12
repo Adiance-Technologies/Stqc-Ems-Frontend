@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import * as XLSX from "xlsx";
 import SessionTimeout from './SessionTimeout';
 import { Box, Button, Checkbox, CircularProgress, FormControl, FormLabel, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Stack, Table, TableCaption, TableContainer, Tbody, Td, Text, Th, Thead, Tr, useBreakpointValue, useDisclosure } from '@chakra-ui/react';
-import { addMultiP2pCamera, addP2pCamera, getP2pCameras } from '../actions/cameraActions';
+import { addMultiP2pCamera, addP2pCamera, getP2pCameras, setCameraOtaToken } from '../actions/cameraActions';
 import { Link } from 'react-router-dom';
 import { FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { toast, ToastContainer } from 'react-toastify';
@@ -28,6 +28,9 @@ const CameraList = () => {
     const [status, setStatus] = useState('');
     const [order, setOrder] = useState('desc');
     const [isPtz, setIsPtz] = useState(0);
+    const [otaTokenModalDevice, setOtaTokenModalDevice] = useState(null);
+    const [otaTokenInput, setOtaTokenInput] = useState('');
+    const [otaTokenSaving, setOtaTokenSaving] = useState(false);
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -138,6 +141,35 @@ const CameraList = () => {
     };
 
     // const [status, setStatus] = useState("offline"); // Default to offline
+
+    const openSetOtaToken = (deviceId) => {
+        setOtaTokenModalDevice(deviceId);
+        setOtaTokenInput('');
+    };
+
+    const closeSetOtaToken = () => {
+        setOtaTokenModalDevice(null);
+        setOtaTokenInput('');
+        setOtaTokenSaving(false);
+    };
+
+    const handleSaveOtaToken = async () => {
+        if (!otaTokenInput.trim()) {
+            toast.error('Token is required');
+            return;
+        }
+        setOtaTokenSaving(true);
+        try {
+            await setCameraOtaToken(otaTokenModalDevice, otaTokenInput.trim());
+            toast.success('OTA token saved');
+            closeSetOtaToken();
+            await getConfig(currentPage, querySearch, status, order);
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+        } finally {
+            setOtaTokenSaving(false);
+        }
+    };
 
     const handleStatusSort = async () => {
         const newStatus = status === "offline" ? "online" : "offline"; // Toggle between online & offline
@@ -372,6 +404,7 @@ const CameraList = () => {
                                     </Button>
                                 </Th>
                                 <Th>ON Time</Th>
+                                <Th>OTA Token</Th>
                                 {/* <Th>Web Url</Th> */}
                                 {/* <Th>Telnet Url</Th> */}
                                 {/* <Th>Media Url</Th> */}
@@ -395,6 +428,27 @@ const CameraList = () => {
 
                                         <Td>{camera.lastCloseTime}</Td>
                                         <Td>{camera.lastStartTime}</Td>
+                                        <Td>
+                                            {camera.otaDeviceToken ? (
+                                                <Text
+                                                    fontFamily="mono"
+                                                    fontSize="xs"
+                                                    color="gray.600"
+                                                    title={`${camera.otaDeviceToken} (locked — one-time set)`}
+                                                >
+                                                    🔒 {camera.otaDeviceToken.slice(0, 10)}…
+                                                </Text>
+                                            ) : (
+                                                <Button
+                                                    size="xs"
+                                                    colorScheme="blue"
+                                                    variant="outline"
+                                                    onClick={() => openSetOtaToken(camera.deviceId)}
+                                                >
+                                                    Set Token
+                                                </Button>
+                                            )}
+                                        </Td>
                                         {/* <Td>
                                             <Link to={camera.weburl} target="_blank" rel="noopener noreferrer">
                                                 <FaArrowUpRightFromSquare />
@@ -750,6 +804,48 @@ const CameraList = () => {
                             fontWeight={"normal"}
                         >
                             {isUploadMode ? "Upload File" : "Add Camera"}
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            <Modal
+                isOpen={Boolean(otaTokenModalDevice)}
+                onClose={closeSetOtaToken}
+                isCentered
+                size="md"
+            >
+                <ModalOverlay />
+                <ModalContent color="black">
+                    <ModalHeader>Set OTA Token</ModalHeader>
+                    <ModalBody>
+                        <Text mb={2}>
+                            Device: <strong>{otaTokenModalDevice}</strong>
+                        </Text>
+                        <Text mb={3} fontSize="sm" color="gray.600">
+                            This token is provided by the firmware engineer and never expires.
+                            It cannot be changed once set.
+                        </Text>
+                        <FormControl>
+                            <FormLabel>OTA Device Token</FormLabel>
+                            <Input
+                                value={otaTokenInput}
+                                onChange={(e) => setOtaTokenInput(e.target.value)}
+                                placeholder="Paste base64 device token"
+                                autoFocus
+                            />
+                        </FormControl>
+                    </ModalBody>
+                    <ModalFooter gap={2}>
+                        <Button onClick={closeSetOtaToken} variant="outline" colorScheme="red">
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveOtaToken}
+                            colorScheme="blue"
+                            isLoading={otaTokenSaving}
+                        >
+                            Save
                         </Button>
                     </ModalFooter>
                 </ModalContent>

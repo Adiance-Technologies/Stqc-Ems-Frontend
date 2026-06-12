@@ -267,6 +267,21 @@ export async function addP2pCamera(deviceId, productType, isPTZ) {
     }
 }
 
+// One-time set of the per-camera OTA token (used as `deviceToken` in the
+// channel-62 secure-OTA MQTT payload). The backend refuses to overwrite an
+// already-set token, so the UI should call this only when the field is empty.
+export async function setCameraOtaToken(deviceId, otaDeviceToken) {
+    try {
+        const response = await instance.post('/camera/ota-token', {
+            deviceId,
+            otaDeviceToken,
+        });
+        return response;
+    } catch (error) {
+        throw error;
+    }
+}
+
 // adding camera from an excel
 
 export async function addMultiP2pCamera(formData) {

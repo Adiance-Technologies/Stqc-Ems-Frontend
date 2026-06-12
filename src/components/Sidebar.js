@@ -179,6 +179,10 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 </Button>
               </Link>
 
+              {/* Provisioning + Certificates entries moved to MPS dashboard:
+                  https://mps.devices.arcisai.io/dash/{provisioning,certificates} */}
+
+
               {/* <Link to="/basefirmware" style={{ textDecoration: 'none' }}>
                 <Button
                   width="100%"

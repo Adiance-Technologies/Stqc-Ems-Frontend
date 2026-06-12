@@ -14,6 +14,7 @@ import UserManagementEms from './pages/userManagementEms';
 import UserCameraList from './pages/UserCameraList';
 import OtaPage from './pages/otaPage';
 import BaseFirmware from './pages/BaseFirmware';
+// Provisioning + Certificates moved to MPS — https://mps.devices.arcisai.io/dash/
 
 function MainApp() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -63,6 +64,7 @@ function MainApp() {
                   <Route path="/userManagement" element={<UserManagement />} />
                   <Route path="/userManagementEms" element={<UserManagementEms />} />
                   <Route path="/basefirmware" element={<BaseFirmware />} />
+                  {/* /provisioning + /certificates moved to https://mps.devices.arcisai.io/dash/ */}
                 </Routes>
               </Box>
             </Flex>
@@ -75,7 +77,7 @@ function MainApp() {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/dash">
       <MainApp />
     </Router>
   );
