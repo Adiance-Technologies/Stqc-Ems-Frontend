@@ -321,13 +321,9 @@ export default function ProvisioningPage() {
   };
 
   const [iwon, setIwon]         = useState('');
-  const [model, setModel]       = useState('');
   const [family, setFamily]     = useState('SECOS');
   const [firmware, setFirmware] = useState('');
-  const [connType, setConnType] = useState('Eth');
   const [count, setCount]       = useState(100);
-  const [startId, setStartId]   = useState('ATPL-900001');
-  const [endId, setEndId]       = useState('ATPL-900100');
   const [creating, setCreating] = useState(false);
 
   useEffect(() => { (async () => {
@@ -340,13 +336,7 @@ export default function ProvisioningPage() {
       setFirmwares(f.firmwares);
       if (f.firmwares.length) setFirmware((cur) => cur || f.firmwares[0].version);
     }
-    if (s?.models) {
-      setSkus(s.models);
-      if (s.models.length) {
-        setModel((cur) => cur || s.models[0].sku);
-        if (s.models[0].family) setFamily((cur) => cur || s.models[0].family);
-      }
-    }
+    if (s?.models) setSkus(s.models);
     if (m?.byType) setMacStats(m);
     setLoading(false);
   })(); /* eslint-disable-next-line */ }, []);
@@ -357,26 +347,8 @@ export default function ProvisioningPage() {
     if (m?.byType) setMacStats(m);
   };
 
-  useEffect(() => {
-    const rx = /^ATPL-(\d{6})$/;
-    const ms = rx.exec(startId);
-    const me = rx.exec(endId);
-    if (ms && me) {
-      const size = parseInt(me[1], 10) - parseInt(ms[1], 10) + 1;
-      if (size > 0) setCount(size);
-    }
-  }, [startId, endId]);
-
-  const sku = productModels.find((m) => m.sku === model);
-  const allowedConn = sku?.connectionTypes?.length ? sku.connectionTypes : ['Eth','WIFI','4G'];
-  const macsPerDevice = sku?.macsPerDevice || 1;
-  const macsNeeded    = macsPerDevice * (parseInt(count, 10) || 0);
-  // Typeless MACs (imported with type=null) are fungible — the allocator can
-  // stamp the requested type on them at claim time. Count them toward every type.
-  const untypedAvail  = macStats.byType?.null?.available || 0;
-  const typedAvail    = macStats.byType?.[connType]?.available || 0;
-  const macsAvailable = typedAvail + untypedAvail;
-  const macsShort     = Math.max(0, macsNeeded - macsAvailable);
+  // Manual batches no longer take a model/connection/range — the device-ID range
+  // is auto-allocated server-side and the manual flow is Ethernet (one MAC/device).
 
   const filteredBatches = useMemo(() => {
     return batches.filter((b) => {
@@ -424,24 +396,19 @@ export default function ProvisioningPage() {
   }, []);
 
   const handleCreate = async () => {
-    if (!iwon || !model || !family || !firmware || !connType || !startId || !endId) {
-      toast({ status: 'error', title: 'All fields are required' });
+    if (!iwon || !family || !firmware || !count) {
+      toast({ status: 'error', title: 'IWON, family, firmware and count are required' });
       return;
     }
     if (!/^[A-Za-z0-9_-]{3,64}$/.test(iwon.trim())) {
       toast({ status: 'error', title: 'IWON must be 3–64 chars (letters, digits, - or _)' });
       return;
     }
-    if (macsShort > 0) {
-      toast({ status: 'error', title: `Insufficient ${connType} MACs`,
-              description: `need ${macsNeeded}, have ${macsAvailable}` });
-      return;
-    }
     setCreating(true);
+    // Model comes from ERP; manual batches are Ethernet (one MAC/device) and the
+    // device-ID range is auto-allocated server-side per family.
     const r = await createBatch({
-      iwon: iwon.trim(), productModel: model, family, firmwareVersion: firmware,
-      connectionType: connType, count: parseInt(count, 10),
-      startDeviceId: startId, endDeviceId: endId,
+      iwon: iwon.trim(), family, firmwareVersion: firmware, count: parseInt(count, 10),
     });
     setCreating(false);
     if (r?.batchId) {
@@ -843,29 +810,17 @@ export default function ProvisioningPage() {
 
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                 <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight={600}>
-                    Product Model
-                    <Tag size="sm" ml={2} colorScheme="gray" variant="subtle">{productModels.length} SKUs</Tag>
-                  </FormLabel>
-                  <Select size="lg" value={model} onChange={(e) => {
-                    const v = e.target.value; setModel(v);
-                    const m = productModels.find((x) => x.sku === v);
-                    if (m?.family) setFamily(m.family);
-                  }}>
-                    {productModels.map((m) => <option key={m.sku} value={m.sku}>{m.sku}</option>)}
-                  </Select>
-                  {sku?.description && (
-                    <Text fontSize="xs" color="surface.subtle" mt={1.5} noOfLines={1}>
-                      {sku.description}
-                    </Text>
-                  )}
-                </FormControl>
-
-                <FormControl isRequired>
                   <FormLabel fontSize="sm" fontWeight={600}>Device family</FormLabel>
                   <Select size="lg" value={family} onChange={(e) => setFamily(e.target.value)}>
                     {FAMILY_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                   </Select>
+                </FormControl>
+
+                <FormControl isRequired>
+                  <FormLabel fontSize="sm" fontWeight={600}>Count</FormLabel>
+                  <NumberInput size="lg" value={count} onChange={(_, v) => setCount(v)} min={1} max={10000}>
+                    <NumberInputField fontFamily="mono" />
+                  </NumberInput>
                 </FormControl>
               </SimpleGrid>
 
@@ -880,59 +835,13 @@ export default function ProvisioningPage() {
                 </Select>
               </FormControl>
 
-              <Divider />
-
-              <FormControl isRequired>
-                <FormLabel fontSize="sm" fontWeight={600}>
-                  Connection type
-                  {sku && (
-                    <Text as="span" ml={2} fontSize="xs" color="surface.subtle" fontWeight={400}>
-                      (SKU supports: {allowedConn.join(', ')})
-                    </Text>
-                  )}
-                </FormLabel>
-                <ConnTypePicker value={connType} onChange={setConnType}
-                                allowed={allowedConn} available={macStats.byType || {}}
-                                untyped={untypedAvail} />
-                <Box mt={3} p={3} bg={macsShort > 0 ? 'red.50' : 'green.50'}
-                     border="1px solid" borderColor={macsShort > 0 ? 'red.200' : 'green.200'}
-                     borderRadius="md">
-                  <HStack justify="space-between">
-                    <Text fontSize="xs" color={macsShort > 0 ? 'red.700' : 'green.700'} fontWeight={600}>
-                      {macsShort > 0
-                        ? `Insufficient — short by ${macsShort.toLocaleString()}`
-                        : `Pool has ${macsAvailable.toLocaleString()} ${connType} MACs ready`}
-                    </Text>
-                    <Text fontSize="xs" color="surface.muted" fontFamily="mono">
-                      need {macsNeeded.toLocaleString()} ({macsPerDevice}/dev × {count})
-                    </Text>
-                  </HStack>
-                </Box>
-              </FormControl>
-
-              <Divider />
-
-              <SimpleGrid columns={3} spacing={3}>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight={600}>Range start</FormLabel>
-                  <Input size="lg" value={startId} onChange={(e) => setStartId(e.target.value)}
-                         placeholder="ATPL-900001" fontFamily="mono" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight={600}>Range end</FormLabel>
-                  <Input size="lg" value={endId} onChange={(e) => setEndId(e.target.value)}
-                         placeholder="ATPL-900100" fontFamily="mono" />
-                </FormControl>
-                <FormControl isRequired>
-                  <FormLabel fontSize="sm" fontWeight={600}>Count</FormLabel>
-                  <NumberInput size="lg" value={count} onChange={(_, v) => setCount(v)} min={1} max={10000}>
-                    <NumberInputField fontFamily="mono" />
-                  </NumberInput>
-                </FormControl>
-              </SimpleGrid>
-              <Text fontSize="xs" color="surface.subtle" mt={-2}>
-                Range size auto-syncs Count. Device IDs land as <Code fontSize="2xs">ATPL-NNNNNN-FAMILY</Code>.
-              </Text>
+              <Box p={3} bg="surface.panelAlt" borderRadius="md">
+                <Text fontSize="xs" color="surface.subtle">
+                  Product model comes from ERP — not selected here. Manual batches use
+                  Ethernet (one MAC per device); the device-ID range is auto-allocated
+                  per family as <Code fontSize="2xs">ATPL-NNNNNN-FAMILY</Code>.
+                </Text>
+              </Box>
 
               <Divider />
 
@@ -1000,7 +909,7 @@ export default function ProvisioningPage() {
 
           <ModalFooter borderTop="1px solid" borderColor="surface.border" mt={4}>
             <Button variant="ghost" mr={3} onClick={create.onClose}>Cancel</Button>
-            <Button onClick={handleCreate} isLoading={creating} isDisabled={macsShort > 0} size="lg">
+            <Button onClick={handleCreate} isLoading={creating} isDisabled={!iwon || !family || !firmware} size="lg">
               Generate batch
             </Button>
           </ModalFooter>
