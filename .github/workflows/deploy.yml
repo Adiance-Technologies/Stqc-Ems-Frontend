@@ -1,0 +1,59 @@
+name: Build & Deploy EMS Frontend
+
+# Builds the CRA dashboard on GitHub's runners (NOT on the platform server),
+# then ships the static `build/` output to the server over SSH and atomically
+# swaps the live `build` symlink to the new release. `serve` reads files
+# per-request, so no service restart is needed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ems-frontend-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          CI: false   # CRA treats lint warnings as errors when CI=true; match the local build
+        run: npm run build
+
+      - name: Set up SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "34.100.143.36 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8mMBhesinuITc/TqFhTSStViL8PFGswAk3fc8fGcCl" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy (atomic release)
+        env:
+          SHA: ${{ github.sha }}
+          DEPLOY: rahul@34.100.143.36
+          APPDIR: /home/rahul/Stqc-Ems-Frontend
+        run: |
+          SSH="ssh -i $HOME/.ssh/deploy_key -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
+          # 1. upload the freshly built static files into a per-commit release dir
+          $SSH "$DEPLOY" "mkdir -p $APPDIR/releases/$SHA"
+          rsync -az --delete -e "$SSH" build/ "$DEPLOY:$APPDIR/releases/$SHA/"
+          # 2. atomically repoint the live `build` symlink, then prune to the last 5 releases
+          $SSH "$DEPLOY" "cd $APPDIR && ln -sfn releases/$SHA build.tmp && mv -Tf build.tmp build && ls -1dt releases/*/ | tail -n +6 | xargs -r rm -rf && echo deployed: \$(readlink build)"
