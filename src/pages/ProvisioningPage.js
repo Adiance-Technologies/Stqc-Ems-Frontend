@@ -304,7 +304,9 @@ export default function ProvisioningPage() {
       d.otpEncoded || '',
       d.certHash || '',
       d.certSerial || '',
-      fmtMac(d.metadata?.macAddress) || '',
+      (Array.isArray(d.macs) && d.macs.length
+        ? d.macs.map((m) => `${m.type}:${fmtMac(m.mac)}`).join(' ')
+        : fmtMac(d.metadata?.macAddress)) || '',
       d.metadata?.firmwareVersion || fwForBatch,
       d.burnedAt || '',
       d.verifiedAt || '',
@@ -382,6 +384,7 @@ export default function ProvisioningPage() {
       if (!search) return true;
       const q = search.toLowerCase();
       return (b.batchId || '').toLowerCase().includes(q)
+          || (b.iwonName || '').toLowerCase().includes(q)
           || (b.productModel || '').toLowerCase().includes(q)
           || (b.family || '').toLowerCase().includes(q);
     });
@@ -506,7 +509,7 @@ export default function ProvisioningPage() {
           <Flex p={4} borderBottom="1px solid" borderColor="surface.border" gap={3} flexWrap="wrap">
             <InputGroup maxW="320px">
               <InputLeftElement><Icon as={FiSearch} color="surface.subtle" /></InputLeftElement>
-              <Input placeholder="Search batch ID, SKU, family…"
+              <Input placeholder="Search batch ID, IWON, SKU, family…"
                 value={search} onChange={(e) => setSearch(e.target.value)} />
             </InputGroup>
             <Select maxW="180px" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -527,6 +530,7 @@ export default function ProvisioningPage() {
               <Thead bg="surface.panelAlt">
                 <Tr>
                   <Th>Batch ID</Th>
+                  <Th>IWON</Th>
                   <Th>SKU</Th>
                   <Th>Family</Th>
                   <Th>Firmware</Th>
@@ -551,7 +555,15 @@ export default function ProvisioningPage() {
                             <Icon as={FiPackage} boxSize={3.5} />
                           </Box>
                           <Code fontFamily="mono" fontSize="xs" colorScheme="brand">{b.batchId}</Code>
+                          <Tag size="sm" variant="subtle" colorScheme={b.source === 'erp' ? 'purple' : 'gray'}>
+                            {b.source === 'erp' ? 'ERP' : 'UI'}
+                          </Tag>
                         </HStack>
+                      </Td>
+                      <Td>
+                        {b.iwonName
+                          ? <Code fontFamily="mono" fontSize="2xs" colorScheme="purple">{b.iwonName}</Code>
+                          : <Text fontSize="xs" color="surface.subtle">—</Text>}
                       </Td>
                       <Td><Text fontSize="xs" color="surface.muted">{b.productModel}</Text></Td>
                       <Td><Tag size="sm" colorScheme="brand" variant="subtle">{b.family}</Tag></Td>
@@ -586,7 +598,7 @@ export default function ProvisioningPage() {
                   );
                 })}
                 {filteredBatches.length === 0 && (
-                  <Tr><Td colSpan={10}><Text textAlign="center" py={6} color="surface.subtle">No batches match.</Text></Td></Tr>
+                  <Tr><Td colSpan={11}><Text textAlign="center" py={6} color="surface.subtle">No batches match.</Text></Td></Tr>
                 )}
               </Tbody>
             </Table>
@@ -757,7 +769,20 @@ export default function ProvisioningPage() {
                               </Tooltip>
                             </Td>
                             <Td><Code fontSize="2xs" color="surface.muted">{trunc(d.certSerial, 14)}</Code></Td>
-                            <Td><Text fontSize="2xs" fontFamily="mono" color="surface.muted">{fmtMac(d.metadata?.macAddress)}</Text></Td>
+                            <Td>
+                              {Array.isArray(d.macs) && d.macs.length ? (
+                                <VStack align="start" spacing={0.5}>
+                                  {d.macs.map((m, mi) => (
+                                    <HStack key={mi} spacing={1}>
+                                      <Tag size="sm" variant="subtle" colorScheme={m.type === 'WIFI' ? 'orange' : 'cyan'}>{m.type}</Tag>
+                                      <Text fontSize="2xs" fontFamily="mono" color="surface.muted">{fmtMac(m.mac)}</Text>
+                                    </HStack>
+                                  ))}
+                                </VStack>
+                              ) : (
+                                <Text fontSize="2xs" fontFamily="mono" color="surface.muted">{fmtMac(d.metadata?.macAddress)}</Text>
+                              )}
+                            </Td>
                             <Td><Text fontSize="xs" color="surface.subtle">{fmtTs(d.verifiedAt)}</Text></Td>
                             <Td onClick={(e) => e.stopPropagation()}>
                               <Tooltip label="Audit trail">
