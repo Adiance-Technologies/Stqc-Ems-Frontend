@@ -48,7 +48,11 @@ jobs:
       - name: Deploy (atomic release)
         env:
           SHA: ${{ github.sha }}
-          DEPLOY: rahul@34.100.143.36
+          # Deploy as root: /home/rahul is mode 0777 so sshd StrictModes refuses
+          # publickey auth for the rahul user. root's home is 0700 (auth works),
+          # and the serve process runs as root too, so root-owned release files
+          # are served fine.
+          DEPLOY: root@34.100.143.36
           APPDIR: /home/rahul/Stqc-Ems-Frontend
         run: |
           SSH="ssh -i $HOME/.ssh/deploy_key -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
