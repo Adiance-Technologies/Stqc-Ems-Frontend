@@ -34,6 +34,7 @@ const CONN_TYPES = [
   { value: 'WIFI', label: 'WiFi',     icon: FiWifi  },
   { value: '4G',   label: '4G',       icon: FiRadio },
 ];
+// Batch-level statuses (also used for the status filter dropdown).
 const STATUS_TONE = {
   generating:  { color: 'yellow', label: 'Generating', icon: FiClock },
   ready:       { color: 'cyan',   label: 'Ready',      icon: FiCheckCircle },
@@ -43,6 +44,16 @@ const STATUS_TONE = {
   allocated:   { color: 'gray',   label: 'Allocated',  icon: FiClock },
   cancelled:   { color: 'gray',   label: 'Cancelled',  icon: FiAlertCircle },
 };
+// Device-level statuses — the per-device table reuses StatusPill, so these must
+// be mapped too or they'd fall back and mislabel (e.g. verified → "Allocated").
+const DEVICE_TONE = {
+  pending:     { color: 'gray',   label: 'Pending',     icon: FiClock },
+  provisioned: { color: 'cyan',   label: 'Provisioned', icon: FiCheckCircle },
+  reserved:    { color: 'purple', label: 'Reserved',    icon: FiClock },
+  burning:     { color: 'orange', label: 'Burning',     icon: FiActivity },
+  verified:    { color: 'green',  label: 'Verified',    icon: FiCheckCircle },
+};
+const TONE = { ...STATUS_TONE, ...DEVICE_TONE };
 const fmtTs  = (t) => (t ? new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 const fmtMac = (h) => !h ? '—' : (h.length === 12 ? [0,2,4,6,8,10].map(i => h.slice(i,i+2)).join(':').toUpperCase() : h);
 const trunc  = (s, n = 16) => (s && s.length > n ? `${s.slice(0, n / 2)}…${s.slice(-n / 2)}` : (s || '—'));
@@ -131,7 +142,8 @@ function SectionHeading({ icon, children }) {
 }
 
 function StatusPill({ status }) {
-  const meta = STATUS_TONE[status] || STATUS_TONE.allocated;
+  // Never silently mislabel an unknown status as "Allocated" — show its real name.
+  const meta = TONE[status] || { color: 'gray', label: status || 'unknown', icon: FiClock };
   return (
     <HStack
       px={2.5} py={1} bg={`${meta.color}.50`} borderRadius="full"

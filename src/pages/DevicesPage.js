@@ -17,6 +17,8 @@ const MotionBox = motion(Box);
 const STATUS_TONE = {
   verified:    { color: 'green',  label: 'Verified',    icon: FiCheckCircle },
   provisioned: { color: 'cyan',   label: 'Provisioned', icon: FiCheckCircle },
+  reserved:    { color: 'purple', label: 'Reserved',    icon: FiClock },
+  burning:     { color: 'orange', label: 'Burning',     icon: FiClock },
   failed:      { color: 'red',    label: 'Failed',      icon: FiAlertCircle },
   allocated:   { color: 'gray',   label: 'Allocated',   icon: FiClock },
   pending:     { color: 'gray',   label: 'Pending',     icon: FiClock },
@@ -32,7 +34,7 @@ const Card = (props) => (
 );
 
 function StatusPill({ status }) {
-  const meta = STATUS_TONE[status] || STATUS_TONE.allocated;
+  const meta = STATUS_TONE[status] || { color: 'gray', label: status || 'unknown', icon: FiClock };
   return (
     <HStack px={2.5} py={1} bg={`${meta.color}.50`} borderRadius="full"
       border="1px solid" borderColor={`${meta.color}.200`} spacing={1.5} display="inline-flex">
