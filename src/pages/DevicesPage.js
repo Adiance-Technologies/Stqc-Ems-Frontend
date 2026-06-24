@@ -16,7 +16,7 @@ const MotionBox = motion(Box);
 
 const STATUS_TONE = {
   verified:    { color: 'green',  label: 'Verified',    icon: FiCheckCircle },
-  provisioned: { color: 'cyan',   label: 'Provisioned', icon: FiCheckCircle },
+  provisioned: { color: 'cyan',   label: 'Prepared',    icon: FiCheckCircle },
   reserved:    { color: 'purple', label: 'Reserved',    icon: FiClock },
   burning:     { color: 'orange', label: 'Burning',     icon: FiClock },
   failed:      { color: 'red',    label: 'Failed',      icon: FiAlertCircle },

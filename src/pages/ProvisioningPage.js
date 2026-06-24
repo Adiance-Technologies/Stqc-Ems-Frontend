@@ -48,7 +48,7 @@ const STATUS_TONE = {
 // be mapped too or they'd fall back and mislabel (e.g. verified → "Allocated").
 const DEVICE_TONE = {
   pending:     { color: 'gray',   label: 'Pending',     icon: FiClock },
-  provisioned: { color: 'cyan',   label: 'Provisioned', icon: FiCheckCircle },
+  provisioned: { color: 'cyan',   label: 'Prepared',    icon: FiCheckCircle },
   reserved:    { color: 'purple', label: 'Reserved',    icon: FiClock },
   burning:     { color: 'orange', label: 'Burning',     icon: FiActivity },
   verified:    { color: 'green',  label: 'Verified',    icon: FiCheckCircle },
@@ -706,7 +706,7 @@ export default function ProvisioningPage() {
                   {[
                     { l: 'Total',       n: selected.count,                          c: 'gray'   },
                     { l: 'Verified',    n: selected.counts?.verified || 0,          c: 'green'  },
-                    { l: 'Provisioned', n: selected.counts?.provisioned || 0,       c: 'cyan'   },
+                    { l: 'Prepared',    n: selected.counts?.provisioned || 0,       c: 'cyan'   },
                     { l: 'Failed',      n: selected.counts?.failed || 0,            c: 'red'    },
                   ].map((s) => (
                     <Box key={s.l} p={3} bg={`${s.c}.50`} border="1px solid" borderColor={`${s.c}.100`} borderRadius="lg">
