@@ -797,6 +797,7 @@ export default function ProvisioningPage() {
                           <Th>#</Th>
                           <Th>Device ID</Th>
                           <Th>Status</Th>
+                          <Th>Burn stage</Th>
                           <Th>OTP hex</Th>
                           <Th>Cert hash</Th>
                           <Th>Cert serial</Th>
@@ -820,6 +821,21 @@ export default function ProvisioningPage() {
                               </HStack>
                             </Td>
                             <Td><StatusPill status={d.status} /></Td>
+                            <Td onClick={(e) => e.stopPropagation()}>
+                              {d.stages ? (
+                                <HStack spacing={0.5}>
+                                  {[['started','Start'],['efuse','eFuse'],['flash','Flash'],['certBurned','Cert'],['macBurned','MAC'],['completed','Done']].map(([k, lbl]) => (
+                                    <Tag key={k} size="sm" variant="subtle"
+                                         colorScheme={d.stages?.[k]?.done ? 'green' : 'gray'}
+                                         title={d.stages?.[k]?.done ? `${lbl} ✓ ${d.stages[k].at ? new Date(d.stages[k].at).toLocaleString() : ''}` : `${lbl}: pending`}>
+                                      {lbl}
+                                    </Tag>
+                                  ))}
+                                </HStack>
+                              ) : (
+                                <Text fontSize="2xs" color="surface.subtle">—</Text>
+                              )}
+                            </Td>
                             <Td><Code fontSize="2xs" colorScheme="orange">{d.otpEncoded || '—'}</Code></Td>
                             <Td>
                               <Tooltip label={d.certHash || 'no hash'}>
@@ -858,7 +874,7 @@ export default function ProvisioningPage() {
                           </Tr>
                         ))}
                         {filteredBatchDevices.length === 0 && (
-                          <Tr><Td colSpan={9}><Text textAlign="center" py={6} color="surface.subtle">
+                          <Tr><Td colSpan={10}><Text textAlign="center" py={6} color="surface.subtle">
                             {selectedDevices.length === 0 ? 'No devices yet.' : 'No devices match the search.'}
                           </Text></Td></Tr>
                         )}
