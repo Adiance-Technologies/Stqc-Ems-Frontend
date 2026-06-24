@@ -18,6 +18,7 @@ import { motion } from 'framer-motion';
 import {
   createBatch, listBatches, getBatchStatus, listFirmwares,
   downloadBatchZip, deleteBatch, listProductModels, getMacStats,
+  listPendingBatches, createFromPending, rejectPending,
 } from '../actions/provisioningActions';
 
 const MotionBox = motion(Box);
@@ -265,6 +266,10 @@ export default function ProvisioningPage() {
   const [productModels, setSkus]    = useState([]);
   const [macStats, setMacStats]     = useState({ total: 0, byType: {} });
   const [loading, setLoading]       = useState(true);
+  // Pending ERP IWONs queued for firmware selection.
+  const [pending, setPending]       = useState([]);
+  const [fwSel, setFwSel]           = useState({});   // { iwonName: { modelNumber: fwVersion } }
+  const [pendingBusy, setPendingBusy] = useState(''); // iwonName currently creating/rejecting
 
   const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -328,8 +333,8 @@ export default function ProvisioningPage() {
 
   useEffect(() => { (async () => {
     setLoading(true);
-    const [b, f, s, m] = await Promise.all([
-      listBatches(), listFirmwares(), listProductModels(), getMacStats(),
+    const [b, f, s, m, p] = await Promise.all([
+      listBatches(), listFirmwares(), listProductModels(), getMacStats(), listPendingBatches(),
     ]);
     if (b?.batches) setBatches(b.batches);
     if (f?.firmwares) {
@@ -338,13 +343,48 @@ export default function ProvisioningPage() {
     }
     if (s?.models) setSkus(s.models);
     if (m?.byType) setMacStats(m);
+    if (p?.pending) setPending(p.pending);
     setLoading(false);
   })(); /* eslint-disable-next-line */ }, []);
 
   const refreshAll = async () => {
-    const [b, m] = await Promise.all([listBatches(), getMacStats()]);
+    const [b, m, p] = await Promise.all([listBatches(), getMacStats(), listPendingBatches()]);
     if (b?.batches) setBatches(b.batches);
     if (m?.byType) setMacStats(m);
+    if (p?.pending) setPending(p.pending);
+  };
+
+  // Firmware chosen per (iwonName, modelNumber); falls back to the SKU's suggestion.
+  const fwFor = (iwonName, item) => (fwSel[iwonName]?.[item.modelNumber]) ?? (item.suggestedFirmware || '');
+  const setFwFor = (iwonName, modelNumber, version) =>
+    setFwSel((cur) => ({ ...cur, [iwonName]: { ...(cur[iwonName] || {}), [modelNumber]: version } }));
+
+  const handleCreatePending = async (p) => {
+    const creatable = p.items.filter((it) => !it.resolveError);
+    if (!creatable.length) { toast({ status: 'error', title: 'No valid models to create' }); return; }
+    const missing = creatable.filter((it) => !fwFor(p.iwonName, it));
+    if (missing.length) { toast({ status: 'error', title: 'Pick firmware for every model first' }); return; }
+    const firmwares = {};
+    creatable.forEach((it) => { firmwares[it.modelNumber] = fwFor(p.iwonName, it); });
+    setPendingBusy(p.iwonName);
+    const r = await createFromPending(p.iwonName, firmwares);
+    setPendingBusy('');
+    if (r?.success) {
+      toast({ status: 'success', title: `Creating ${r.accepted?.length || 0} batch(es) for ${p.iwonName}`,
+              description: r.failed?.length ? `Skipped: ${r.failed.join('; ')}` : 'Generation started' });
+      refreshAll();
+    } else {
+      toast({ status: 'error', title: r?.message || 'Failed to create batches' });
+    }
+  };
+
+  const handleRejectPending = async (p) => {
+    if (!window.confirm(`Reject IWON ${p.iwonName}? It will be removed from the EMS queue (ERP is not notified).`)) return;
+    setPendingBusy(p.iwonName);
+    const r = await rejectPending(p.iwonName, '');
+    setPendingBusy('');
+    if (r?.success) { toast({ status: 'info', title: `IWON ${p.iwonName} rejected` }); refreshAll(); }
+    else { toast({ status: 'error', title: r?.message || 'Failed to reject' }); }
   };
 
   // Manual batches no longer take a model/connection/range — the device-ID range
@@ -467,6 +507,64 @@ export default function ProvisioningPage() {
 
       {/* KPI strip */}
       <StatStrip batches={batches} />
+
+      {/* Pending ERP IWONs — operator chooses firmware per model, then creates */}
+      {pending.length > 0 && (
+        <Card mb={4} borderColor="purple.200" borderWidth="1px">
+          <Flex p={4} borderBottom="1px solid" borderColor="surface.border" align="center" gap={2} flexWrap="wrap">
+            <Icon as={FiClock} color="purple.500" />
+            <Heading size="sm">Pending from ERP</Heading>
+            <Tag size="sm" colorScheme="purple" variant="subtle">{pending.length}</Tag>
+            <Text fontSize="xs" color="surface.subtle" ml={2}>Accepted in ERP — choose firmware per model, then create the batches.</Text>
+          </Flex>
+          {pending.map((p) => (
+            <Box key={p.iwonName} p={4} _notLast={{ borderBottom: '1px solid', borderColor: 'surface.border' }}>
+              <Flex align="center" mb={3} gap={2} flexWrap="wrap">
+                <Code colorScheme="purple" fontSize="sm">{p.iwonName}</Code>
+                <Tag size="sm" variant="subtle">{p.items.length} model(s)</Tag>
+                <Tag size="sm" variant="subtle">qty {p.totalQuantity}</Tag>
+                <Box flex={1} />
+                <Button size="sm" variant="outline" colorScheme="red"
+                        isDisabled={pendingBusy === p.iwonName}
+                        onClick={() => handleRejectPending(p)}>Reject</Button>
+                <Button size="sm" leftIcon={<FiPlus />} isLoading={pendingBusy === p.iwonName}
+                        onClick={() => handleCreatePending(p)}>Create batches</Button>
+              </Flex>
+              <TableContainer>
+                <Table size="sm" variant="simple">
+                  <Thead bg="surface.panelAlt"><Tr>
+                    <Th>Model</Th><Th isNumeric>Qty</Th><Th>Family</Th><Th>MACs</Th><Th>Firmware</Th>
+                  </Tr></Thead>
+                  <Tbody>
+                    {p.items.map((it, i) => (
+                      <Tr key={i}>
+                        <Td><Code fontSize="2xs">{it.modelNumber}</Code></Td>
+                        <Td isNumeric>{it.quantity}</Td>
+                        <Td>{it.family ? <Tag size="sm" colorScheme="brand" variant="subtle">{it.family}</Tag> : '—'}</Td>
+                        <Td>
+                          {it.resolveError
+                            ? <Text fontSize="2xs" color="red.500">{it.resolveError}</Text>
+                            : (it.macTypes || []).map((t) => (
+                                <Tag key={t} size="sm" mr={1} variant="subtle" colorScheme={t === 'WIFI' ? 'orange' : 'cyan'}>{t}</Tag>))}
+                        </Td>
+                        <Td>
+                          {it.resolveError ? '—' : (
+                            <Select size="sm" maxW="220px" value={fwFor(p.iwonName, it)}
+                                    onChange={(e) => setFwFor(p.iwonName, it.modelNumber, e.target.value)}>
+                              <option value="">Select firmware</option>
+                              {firmwares.map((f) => (<option key={f.version} value={f.version}>{f.version}</option>))}
+                            </Select>
+                          )}
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            </Box>
+          ))}
+        </Card>
+      )}
 
       {batches.length === 0 ? (
         <EmptyBatches onCreate={create.onOpen} />

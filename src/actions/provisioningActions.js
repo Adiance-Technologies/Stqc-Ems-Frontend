@@ -29,6 +29,35 @@ export const createBatch = async (payload) => {
     }
 };
 
+// ── Pending ERP IWONs (queued on ERP accept; operator picks firmware) ──
+export const listPendingBatches = async () => {
+    try {
+        const response = await instance.get('/pending');
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Failed to list pending IWONs' };
+    }
+};
+
+export const createFromPending = async (iwonName, firmwares) => {
+    // firmwares: { "<modelNumber>": "<firmwareVersion>", ... }
+    try {
+        const response = await instance.post(`/pending/${encodeURIComponent(iwonName)}/create`, { firmwares });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Failed to create batches' };
+    }
+};
+
+export const rejectPending = async (iwonName, reason) => {
+    try {
+        const response = await instance.post(`/pending/${encodeURIComponent(iwonName)}/reject`, { reason });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Failed to reject IWON' };
+    }
+};
+
 export const getBatchStatus = async (batchId) => {
     try {
         const response = await instance.get(`/batch/${batchId}`);
