@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write          # create tags + GitHub Releases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,3 +63,22 @@ jobs:
           rsync -az --delete -e "$SSH" build/ "$DEPLOY:$APPDIR/releases/$SHA/"
           # 2. atomically repoint the live `build` symlink, then prune to the last 5 releases
           $SSH "$DEPLOY" "cd $APPDIR && ln -sfn releases/$SHA build.tmp && mv -Tf build.tmp build && ls -1dt releases/*/ | tail -n +6 | xargs -r rm -rf && echo deployed: \$(readlink build)"
+
+      - name: Tag release (auto semver patch-bump)
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          # Latest vMAJOR.MINOR.PATCH tag (semver-sorted); start at v1.0.0 if none.
+          latest=$(gh api "repos/$REPO/tags?per_page=100" --jq '.[].name' 2>/dev/null \
+                    | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
+          if [ -z "$latest" ]; then
+            next="v1.0.0"
+          else
+            v=${latest#v}; M=${v%%.*}; r=${v#*.}; m=${r%%.*}; p=${r##*.}
+            next="v$M.$m.$((p + 1))"
+          fi
+          echo "Releasing $next (was ${latest:-none}) @ $SHA"
+          gh release create "$next" --repo "$REPO" --target "$SHA" --title "$next" --generate-notes
