@@ -57,6 +57,16 @@ const TONE = { ...STATUS_TONE, ...DEVICE_TONE };
 const fmtTs  = (t) => (t ? new Date(t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 const fmtMac = (h) => !h ? '—' : (h.length === 12 ? [0,2,4,6,8,10].map(i => h.slice(i,i+2)).join(':').toUpperCase() : h);
 const trunc  = (s, n = 16) => (s && s.length > n ? `${s.slice(0, n / 2)}…${s.slice(-n / 2)}` : (s || '—'));
+// Cert-install status: "Installed" only once the cert is burned INTO the camera
+// (tests.certInstall, reported by PPC post-flash) — NOT at generation, where only
+// certHash exists (cert is in the ZIP, not yet in any device).
+const certInstallMeta = (d) => {
+  const ci = d?.tests?.certInstall;
+  if (ci === 'pass') return { label: 'Installed', color: 'green' };
+  if (ci === 'fail') return { label: 'Failed',    color: 'red'   };
+  if (d?.certHash)   return { label: 'Generated', color: 'gray'  };
+  return { label: 'Pending', color: 'gray' };
+};
 
 // Fleet-wide HSM / trust references — shown read-only in the Create modal so
 // operators (and audit reviewers) can see exactly which anchors back the batch.
@@ -811,6 +821,7 @@ export default function ProvisioningPage() {
                           <Th>Status</Th>
                           <Th>Burn stage</Th>
                           <Th>OTP hex</Th>
+                          <Th>Cert</Th>
                           <Th>Cert hash</Th>
                           <Th>Cert serial</Th>
                           <Th>MAC</Th>
@@ -850,6 +861,14 @@ export default function ProvisioningPage() {
                             </Td>
                             <Td><Code fontSize="2xs" colorScheme="orange">{d.otpEncoded || '—'}</Code></Td>
                             <Td>
+                              {(() => { const c = certInstallMeta(d); return (
+                                <Tag size="sm" variant="subtle" colorScheme={c.color}
+                                     title={c.label === 'Generated' ? 'Cert generated (in ZIP), not yet burned into the camera' : c.label === 'Installed' ? 'Cert burned into the camera' : c.label}>
+                                  {c.label}
+                                </Tag>
+                              ); })()}
+                            </Td>
+                            <Td>
                               <Tooltip label={d.certHash || 'no hash'}>
                                 <HStack spacing={1}>
                                   <Code fontSize="2xs" colorScheme="green">{trunc(d.certHash, 16)}</Code>
@@ -886,7 +905,7 @@ export default function ProvisioningPage() {
                           </Tr>
                         ))}
                         {filteredBatchDevices.length === 0 && (
-                          <Tr><Td colSpan={10}><Text textAlign="center" py={6} color="surface.subtle">
+                          <Tr><Td colSpan={11}><Text textAlign="center" py={6} color="surface.subtle">
                             {selectedDevices.length === 0 ? 'No devices yet.' : 'No devices match the search.'}
                           </Text></Td></Tr>
                         )}
