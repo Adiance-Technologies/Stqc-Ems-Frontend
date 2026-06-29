@@ -85,6 +85,17 @@ export const deleteBatch = async (batchId) => {
     }
 };
 
+export const updateBatchFirmware = async (batchId, firmwareVersion) => {
+    // Repacks the batch ZIP with new firmware + re-signs it server-side.
+    // Per-device certs/MACs are reused; only the firmware is swapped.
+    try {
+        const response = await instance.patch(`/batch/${batchId}/firmware`, { firmwareVersion });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || 'Failed to update firmware' };
+    }
+};
+
 export const downloadBatchZip = async (batchId) => {
     // Triggers a browser download of the ZIP. Uses window.location to
     // preserve cookies/session without double-fetching the whole blob.

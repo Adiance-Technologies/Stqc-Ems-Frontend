@@ -12,13 +12,13 @@ import {
 import {
   FiSearch, FiPlus, FiDownload, FiTrash2, FiPackage, FiCheckCircle,
   FiClock, FiAlertCircle, FiCpu, FiWifi, FiRadio, FiArrowRight,
-  FiCopy, FiInfo, FiActivity, FiKey, FiShield, FiLock,
+  FiCopy, FiInfo, FiActivity, FiKey, FiShield, FiLock, FiEdit3,
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import {
   createBatch, listBatches, getBatchStatus, listFirmwares,
   downloadBatchZip, deleteBatch, listProductModels, getMacStats,
-  listPendingBatches, createFromPending, rejectPending,
+  listPendingBatches, createFromPending, rejectPending, updateBatchFirmware,
 } from '../actions/provisioningActions';
 
 const MotionBox = motion(Box);
@@ -300,6 +300,9 @@ export default function ProvisioningPage() {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [detailDevice, setDetailDevice] = useState(null);
   const [deviceSearch, setDeviceSearch] = useState('');
+  // Edit-firmware control (in the batch detail drawer)
+  const [editFw, setEditFw]     = useState('');   // chosen new firmware version
+  const [fwBusy, setFwBusy]     = useState(false);
   const drawer       = useDisclosure();
   const deviceModal  = useDisclosure();
   const create       = useDisclosure();
@@ -430,6 +433,7 @@ export default function ProvisioningPage() {
     if (r?.batchId) {
       setSelected(r);
       setSelectedDevices(r.devices || []);
+      setEditFw('');   // reset the firmware picker for the newly opened batch
       drawer.onOpen();
     } else {
       toast({ status: 'error', title: r?.message || 'Failed to load batch' });
@@ -486,6 +490,39 @@ export default function ProvisioningPage() {
   const handleDownload = async (batchId) => {
     const r = await downloadBatchZip(batchId);
     if (!r?.success) toast({ status: 'error', title: r?.message || 'Download failed' });
+  };
+
+  const handleUpdateFirmware = async () => {
+    if (!selected?.batchId || !editFw) return;
+    if (editFw === selected.firmwareVersion) {
+      toast({ status: 'info', title: `Batch is already on ${editFw}` });
+      return;
+    }
+    const burned = (selected.counts?.verified || 0) + (selected.counts?.failed || 0);
+    const warn = burned > 0
+      ? `\n\n${burned} device(s) are already burned/verified on ${selected.firmwareVersion} — they keep the OLD firmware. Only the ZIP for the remaining devices changes.`
+      : '';
+    if (!window.confirm(
+      `Update firmware for batch ${selected.batchId}?\n\n${selected.firmwareVersion} → ${editFw}\n\nThe batch ZIP is repacked with the new firmware and re-signed by the HSM. Per-device certs and MACs are kept.${warn}`
+    )) return;
+
+    setFwBusy(true);
+    const r = await updateBatchFirmware(selected.batchId, editFw);
+    setFwBusy(false);
+    if (r?.batchId) {
+      toast({
+        status: 'success',
+        title: `Repacking ${r.batchId} with ${editFw}`,
+        description: r.warning || 'ZIP is being rebuilt + re-signed. Status will refresh shortly.',
+      });
+      setEditFw('');
+      // Refresh the open batch + table; the 5s drawer poll will catch the flip back to ready.
+      const fresh = await getBatchStatus(selected.batchId);
+      if (fresh?.batchId) { setSelected(fresh); setSelectedDevices(fresh.devices || []); }
+      refreshAll();
+    } else {
+      toast({ status: 'error', title: r?.message || 'Failed to update firmware' });
+    }
   };
 
   const handleDelete = async (batchId) => {
@@ -781,6 +818,46 @@ export default function ProvisioningPage() {
                     <KV k="Download count"  v={selected.downloadCount ?? 0} mono={false} />
                     <KV k="First download"  v={fmtTs(selected.firstDownloadedAt)} mono={false} />
                   </Box>
+                </Card>
+
+                {/* ── Edit firmware ──────────────────────────────── */}
+                <Card p={4}>
+                  <HStack mb={3} spacing={2}>
+                    <Icon as={FiEdit3} color="brand.600" boxSize={3.5} />
+                    <Heading size="xs" textTransform="uppercase" letterSpacing="0.06em" color="surface.muted">
+                      Update firmware
+                    </Heading>
+                  </HStack>
+                  <Text fontSize="xs" color="surface.subtle" mb={3}>
+                    Swap the firmware bundled with this batch. The ZIP is repacked and re-signed by the HSM;
+                    per-device certs &amp; MACs are kept. The old firmware is removed from the batch.
+                  </Text>
+                  <Flex gap={3} align="center" wrap="wrap">
+                    <Box>
+                      <Text fontSize="2xs" color="surface.subtle" mb={1}>Current</Text>
+                      <Code fontSize="xs" colorScheme="gray">{selected.firmwareVersion}</Code>
+                    </Box>
+                    <Icon as={FiArrowRight} color="surface.subtle" />
+                    <FormControl flex={1} minW="200px">
+                      <Text fontSize="2xs" color="surface.subtle" mb={1}>New firmware</Text>
+                      <Select size="sm" placeholder="Select firmware…" value={editFw}
+                              isDisabled={fwBusy || selected.status === 'generating'}
+                              onChange={(e) => setEditFw(e.target.value)}>
+                        {firmwares.map((f) => (
+                          <option key={f.version} value={f.version}
+                                  disabled={f.version === selected.firmwareVersion}>
+                            {f.version}{f.version === selected.firmwareVersion ? ' (current)' : ''}
+                          </option>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Button size="sm" alignSelf="flex-end" leftIcon={<FiEdit3 />}
+                            isLoading={fwBusy} loadingText="Repacking"
+                            isDisabled={!editFw || editFw === selected.firmwareVersion || selected.status === 'generating'}
+                            onClick={handleUpdateFirmware}>
+                      Update
+                    </Button>
+                  </Flex>
                 </Card>
 
                 <HStack>
