@@ -17,6 +17,7 @@ import BaseFirmware from './pages/BaseFirmware';
 import ProvisioningPage from './pages/ProvisioningPage';
 import DevicesPage from './pages/DevicesPage';
 import CertificatesPage from './pages/CertificatesPage';
+import QCReports from './pages/QCReports';
 
 function MainApp() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -70,6 +71,7 @@ function MainApp() {
                   <Route path="/provisioning" element={<ProvisioningPage />} />
                   <Route path="/devices" element={<DevicesPage />} />
                   <Route path="/certificates" element={<CertificatesPage />} />
+                  <Route path="/qc-reports" element={<QCReports />} />
                 </Routes>
               </Box>
             </Flex>

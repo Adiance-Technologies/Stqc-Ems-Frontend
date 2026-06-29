@@ -232,6 +232,23 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 </Button>
               </Link>
 
+              <Link to="/qc-reports" style={{ textDecoration: 'none' }}>
+                <Button
+                  width="100%"
+                  alignItems="center"
+                  justifyContent="left"
+                  bg={isActive('/qc-reports') ? '#EEF2FF' : 'transparent'}
+                  color={isActive('/qc-reports') ? '#4338CA' : '#3C4759'}
+                  fontSize="sm"
+                  _hover={{ bg: '#EEF1F7', color: '#0B0F19' }}
+                >
+                  <HStack spacing={isCollapsed ? 0 : 4}>
+                    <BsRecordCircle color={isActive('/qc-reports') ? '#4F46E5' : '#6B7280'} />
+                    {!isCollapsed && <span>QC Reports</span>}
+                  </HStack>
+                </Button>
+              </Link>
+
               {/* <Link to="/basefirmware" style={{ textDecoration: 'none' }}>
                 <Button
                   width="100%"
