@@ -76,8 +76,11 @@ export default function QCReports() {
     <Box p={6}>
       <Flex justify="space-between" align="center" mb={4} flexWrap="wrap" gap={3}>
         <Box>
-          <Heading size="lg">QC Reports</Heading>
-          <Text color="gray.500" fontSize="sm">Final functional QC of assembled cameras, pushed by the QC App after provisioning.</Text>
+          <HStack spacing={2}>
+            <Heading size="lg">External QC Reports</Heading>
+            <Tag size="sm" colorScheme="purple" variant="subtle" borderRadius="full">EXT QC</Tag>
+          </HStack>
+          <Text color="gray.500" fontSize="sm">Final functional QC of assembled cameras, pushed by the external QC App over the External QC Report API (mTLS) after provisioning.</Text>
         </Box>
         <IconButton aria-label="refresh" icon={<FiRefreshCw />} onClick={load} />
       </Flex>

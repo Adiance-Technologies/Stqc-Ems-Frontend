@@ -244,7 +244,7 @@ const Sidebar = ({ isCollapsed, toggleCollapse }) => {
                 >
                   <HStack spacing={isCollapsed ? 0 : 4}>
                     <BsRecordCircle color={isActive('/qc-reports') ? '#4F46E5' : '#6B7280'} />
-                    {!isCollapsed && <span>QC Reports</span>}
+                    {!isCollapsed && <span>EXT QC Reports</span>}
                   </HStack>
                 </Button>
               </Link>
